@@ -1,4 +1,8 @@
 ### Python template
+
+
+media/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -51,9 +55,6 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
-
-# Images
-/*.jpg
 
 # Translations
 *.mo
