@@ -120,7 +120,6 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static/images"),
     os.path.join(BASE_DIR, "static/styles"),
     os.path.join(BASE_DIR, "static/scripts"),
-    os.path.join(BASE_DIR, "static/places"),
 ]
 
 MEDIA_URL = "/media/"
