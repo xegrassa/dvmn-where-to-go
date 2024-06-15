@@ -6,17 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('places', '0002_image'),
+        ("places", "0002_image"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='image',
-            options={'ordering': ('_order',)},
+            name="image",
+            options={"ordering": ("_order",)},
         ),
         migrations.AddField(
-            model_name='image',
-            name='_order',
-            field=models.PositiveSmallIntegerField(default=0, verbose_name='order'),
+            model_name="image",
+            name="_order",
+            field=models.PositiveSmallIntegerField(default=0, verbose_name="order"),
         ),
     ]

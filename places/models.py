@@ -18,7 +18,10 @@ class Image(models.Model):
     _order = models.PositiveSmallIntegerField(verbose_name="order", default=0)
 
     class Meta(object):
-        ordering = ("place", "_order",)
+        ordering = (
+            "place",
+            "_order",
+        )
 
     def __str__(self):
         return f"{self._order} {self.place}"
