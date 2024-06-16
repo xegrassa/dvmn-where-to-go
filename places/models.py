@@ -15,13 +15,21 @@ class Place(models.Model):
 class Image(models.Model):
     place = models.ForeignKey(Place, null=True, on_delete=models.SET_NULL)
     image = models.ImageField(verbose_name="Картинка")
-    _order = models.PositiveSmallIntegerField(verbose_name="Позиция", default=0)
+    _order = models.PositiveSmallIntegerField(verbose_name="Позиция", default=0, blank=False, null=False, db_index=True)
+
+    def save(self, *args, **kwargs):
+
+        if not self.id:
+            max_order = Image.objects.filter(place_id=self.place.id).aggregate(max_order=models.Max('_order'))['max_order']
+            if max_order is not None:
+                self._order = max_order + 1
+            else:
+                self._order = 1
+
+        super().save(*args, **kwargs)
 
     class Meta(object):
-        ordering = (
-            "place",
-            "_order",
-        )
+        ordering = ["_order"]
 
     def __str__(self):
         return f"{self._order} {self.place}"
