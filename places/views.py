@@ -1,6 +1,7 @@
-from places.models import Place
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+
+from places.models import Place
 
 
 def place_read(request, place_id: int):

@@ -1,18 +1,19 @@
-import json
 import logging
 import os
+from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlparse
+
+import requests
+from django.core.files.base import ContentFile
+from django.core.files.images import ImageFile
+from django.core.management.base import BaseCommand
+from pydantic import BaseModel
+from requests import Response
 from tqdm import tqdm
 from tqdm.contrib.concurrent import thread_map
-from collections import defaultdict
-import requests
-from requests import Response
-from django.core.management.base import BaseCommand
-from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from places.models import Place
-from pydantic import BaseModel, Field, ConfigDict
-from django.core.files.images import ImageFile
-from django.core.files.base import ContentFile
 
 
 class Coordinate(BaseModel):
