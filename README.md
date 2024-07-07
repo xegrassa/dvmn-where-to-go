@@ -13,6 +13,7 @@
 ```
 DEBUG=False # Запуск в DEBUG режиме, для локального запуска True
 SECRET_KEY=django-insecure-hh_fasfsdafuy^@fda1312 # Секретный ключ Django
+ALLOWED_HOSTS=127.0.0.1,1.2.3.4 # Разрешенные хосты (по умолчанию 127.0.0.1)
 ```
 ### Запуск проекта
 - Установлен [Python 3.10](https://www.python.org/downloads/release/python-3100/)
