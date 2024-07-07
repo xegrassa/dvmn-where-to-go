@@ -3,20 +3,20 @@ from tinymce.models import HTMLField
 
 
 class Place(models.Model):
-    title = models.CharField(verbose_name="Название", max_length=255)
-    short_description = models.TextField(verbose_name="Короткое описание", blank=True)
-    long_description = HTMLField(verbose_name="Длинное описание", blank=True)
-    longitude = models.FloatField(verbose_name="Долгота")
-    latitude = models.FloatField(verbose_name="Широта")
+    title = models.CharField("Название", max_length=255)
+    short_description = models.TextField("Короткое описание", blank=True)
+    long_description = HTMLField("Длинное описание", blank=True)
+    longitude = models.FloatField("Долгота")
+    latitude = models.FloatField("Широта")
 
     def __str__(self):
         return self.title
 
 
 class Image(models.Model):
-    place = models.ForeignKey(Place, null=True, on_delete=models.SET_NULL)
-    image = models.ImageField(verbose_name="Картинка")
-    _order = models.PositiveSmallIntegerField(verbose_name="Позиция", default=0, db_index=True)
+    place = models.ForeignKey(Place, on_delete=models.CASCADE)
+    image = models.ImageField("Файл картинки")
+    _order = models.PositiveSmallIntegerField("Позиция", default=0, blank=True, db_index=True)
 
     def save(self, *args, **kwargs):
 
