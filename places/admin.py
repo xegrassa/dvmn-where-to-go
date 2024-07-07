@@ -9,6 +9,8 @@ ADMIN_PREVIEW_IMAGE_MAX_HEIGHT = "200"
 
 @admin.register(Image)
 class ImageAdmin(admin.ModelAdmin):
+    autocomplete_fields = ['place']
+
     fields = ["place", "image"]
 
 
@@ -30,6 +32,8 @@ class ImageInline(SortableInlineAdminMixin, admin.TabularInline):
 
 @admin.register(Place)
 class PlaceAdmin(SortableAdminBase, admin.ModelAdmin):
+    search_fields = ['title']
+
     inlines = [
         ImageInline,
     ]
