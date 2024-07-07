@@ -8,7 +8,7 @@ from places import views as places_view
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("places/<int:place_id>/", places_view.place_read, name="place_detail"),
+    path("places/<int:place_id>/", places_view.read_place, name="place_detail"),
     path("", places.views.show_main),
     path("tinymce/", include("tinymce.urls")),
 ]

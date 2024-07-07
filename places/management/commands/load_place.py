@@ -23,8 +23,8 @@ class Coordinate(BaseModel):
 
 class PlaceSchema(BaseModel):
     title: str
-    description_short: str
-    description_long: str
+    short_description: str
+    long_description: str
     imgs: list[str]
     coordinates: Coordinate
 
@@ -108,8 +108,8 @@ class Command(BaseCommand):
         for idx, p in enumerate(places_dto):
             p_obj = Place.objects.create(
                 title=p.title,
-                description_short=p.description_short,
-                description_long=p.description_long,
+                description_short=p.short_description,
+                description_long=p.long_description,
                 longitude=p.coordinates.lng,
                 latitude=p.coordinates.lat,
             )
