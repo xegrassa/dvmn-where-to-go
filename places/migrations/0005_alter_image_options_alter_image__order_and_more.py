@@ -17,9 +17,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="image",
             name="_order",
-            field=models.PositiveSmallIntegerField(
-                db_index=True, default=0, verbose_name="Позиция"
-            ),
+            field=models.PositiveSmallIntegerField(db_index=True, default=0, verbose_name="Позиция"),
         ),
         migrations.AlterField(
             model_name="image",

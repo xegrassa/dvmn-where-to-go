@@ -3,9 +3,9 @@ from tinymce.models import HTMLField
 
 
 class Place(models.Model):
-    title = models.CharField(verbose_name='Название', max_length=100)
-    description_short = models.CharField(verbose_name='Короткое описание', max_length=255)
-    description_long = HTMLField(verbose_name='Длинное описание', blank=True)
+    title = models.CharField(verbose_name="Название", max_length=100)
+    description_short = models.CharField(verbose_name="Короткое описание", max_length=255)
+    description_long = HTMLField(verbose_name="Длинное описание", blank=True)
     longitude = models.FloatField(verbose_name="Долгота")
     latitude = models.FloatField(verbose_name="Широта")
 
@@ -21,7 +21,9 @@ class Image(models.Model):
     def save(self, *args, **kwargs):
 
         if not self.id:
-            max_order = Image.objects.filter(place_id=self.place.id).aggregate(max_order=models.Max('_order'))['max_order']
+            max_order = Image.objects.filter(place_id=self.place.id).aggregate(max_order=models.Max("_order"))[
+                "max_order"
+            ]
             if max_order is not None:
                 self._order = max_order + 1
             else:

@@ -10,14 +10,11 @@ def show_main(request):
     for place in Place.objects.all():
         point = {
             "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": [place.longitude, place.latitude]
-            },
+            "geometry": {"type": "Point", "coordinates": [place.longitude, place.latitude]},
             "properties": {
                 "title": place.title,
                 "placeId": place.id,
-                "detailsUrl": reverse("place_detail", args=[place.id])
+                "detailsUrl": reverse("place_detail", args=[place.id]),
             },
         }
         points["features"].append(point)

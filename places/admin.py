@@ -18,7 +18,7 @@ class ImageInline(SortableInlineAdminMixin, admin.TabularInline):
     verbose_name_plural = "Фотографии"
     extra = 0
 
-    readonly_fields = ('preview',)
+    readonly_fields = ("preview",)
 
     def preview(self, obj):
         return format_html(

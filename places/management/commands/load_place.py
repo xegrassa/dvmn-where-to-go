@@ -68,41 +68,36 @@ def configure_logger(log):
 
 
 class Command(BaseCommand):
-    help = 'Loads places to DB'
+    help = "Loads places to DB"
 
     def handle(self, *args, **options):
 
-        if options['verbose']:
+        if options["verbose"]:
             configure_logger(logger)
 
         urls = []
-        if options['file_path']:
-            with open(options['file_path']) as f:
+        if options["file_path"]:
+            with open(options["file_path"]) as f:
                 for line in f:
                     urls.append(line.strip())
-        if options['urls']:
-            for url in options['urls']:
+        if options["urls"]:
+            for url in options["urls"]:
                 urls.append(url)
 
-        debug_message = '\n'.join(urls)
+        debug_message = "\n".join(urls)
         logger.debug(f"Кол-во ссылок на json: {len(urls)}\n {debug_message}")
 
-        responses = thread_map(
-            download_json,
-            urls,
-            max_workers=options['thread_count'],
-            desc='Downloading json files'
-        )
+        responses = thread_map(download_json, urls, max_workers=options["thread_count"], desc="Downloading json files")
         places_dto = [PlaceSchema(**r.json()) for r in responses if r]
         logger.debug(f"Успешно скачанных json: {len(places_dto)}")
 
         image_results = []
-        with ThreadPoolExecutor(options['thread_count']) as executor:
+        with ThreadPoolExecutor(options["thread_count"]) as executor:
             futures = []
             for idx, place in enumerate(places_dto):
                 futures.extend([executor.submit(download_image, url, idx) for url in place.imgs])
 
-            for future in tqdm(futures, desc='Downloading images', unit='file'):
+            for future in tqdm(futures, desc="Downloading images", unit="file"):
                 image_results.append(future.result())
 
         d = defaultdict(list)
@@ -122,14 +117,10 @@ class Command(BaseCommand):
             for images in d[idx]:
                 file_name, content = images
 
-                p_obj.image_set.create(
-                    image=ImageFile(
-                        ContentFile(content, name=file_name)
-                    )
-                )
+                p_obj.image_set.create(image=ImageFile(ContentFile(content, name=file_name)))
 
     def add_arguments(self, parser):
-        parser.add_argument("--urls", nargs='+', help='URLS до json файлов')
-        parser.add_argument("--thread-count", type=int, default=6, help='Кол-во потоков для скачивания')
-        parser.add_argument("--file-path", help='Файл со списком url')
-        parser.add_argument("--verbose", action='store_true', help='Вывод логов')
+        parser.add_argument("--urls", nargs="+", help="URLS до json файлов")
+        parser.add_argument("--thread-count", type=int, default=6, help="Кол-во потоков для скачивания")
+        parser.add_argument("--file-path", help="Файл со списком url")
+        parser.add_argument("--verbose", action="store_true", help="Вывод логов")
