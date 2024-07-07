@@ -14,7 +14,7 @@ class Place(models.Model):
 
 
 class Image(models.Model):
-    place = models.ForeignKey(Place, on_delete=models.CASCADE)
+    place = models.ForeignKey(Place, related_name="images", on_delete=models.CASCADE)
     image = models.ImageField("Файл картинки")
     _order = models.PositiveSmallIntegerField("Позиция", default=0, blank=True, db_index=True)
 

@@ -10,7 +10,7 @@ def read_place(request, place_id: int):
 
     payload = {
         "title": place.title,
-        "imgs": [img.image.url for img in place.image_set.all()],
+        "imgs": [img.image.url for img in place.images.all()],
         "description_short": place.short_description,
         "description_long": place.long_description,
         "coordinates": {"lat": place.latitude, "lng": place.longitude},

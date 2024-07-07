@@ -117,7 +117,7 @@ class Command(BaseCommand):
             for images in d[idx]:
                 file_name, content = images
 
-                p_obj.image_set.create(image=ImageFile(ContentFile(content, name=file_name)))
+                p_obj.images.create(image=ImageFile(ContentFile(content, name=file_name)))
 
     def add_arguments(self, parser):
         parser.add_argument("--urls", nargs="+", help="URLS до json файлов")
