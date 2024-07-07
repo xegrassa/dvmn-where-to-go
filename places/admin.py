@@ -4,7 +4,7 @@ from django.utils.html import format_html
 
 from .models import Image, Place
 
-ADMIN_PREVIEW_IMAGE_HEIGHT = "200"
+ADMIN_PREVIEW_IMAGE_MAX_HEIGHT = "200"
 
 
 @admin.register(Image)
@@ -18,13 +18,13 @@ class ImageInline(SortableInlineAdminMixin, admin.TabularInline):
     verbose_name_plural = "Фотографии"
     extra = 0
 
-    readonly_fields = ("preview",)
+    readonly_fields = ("get_preview_image",)
 
     def get_preview_image(self, obj):
         return format_html(
-            '<img src="{url}" height={height} />',
+            '<img src="{url}" style="max-height:{height}px" />',
             url=obj.image.url,
-            height=ADMIN_PREVIEW_IMAGE_HEIGHT,
+            height=ADMIN_PREVIEW_IMAGE_MAX_HEIGHT,
         )
 
 
