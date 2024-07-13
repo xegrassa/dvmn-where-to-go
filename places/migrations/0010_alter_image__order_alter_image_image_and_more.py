@@ -14,9 +14,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="image",
             name="_order",
-            field=models.PositiveSmallIntegerField(
-                blank=True, db_index=True, default=0, verbose_name="Позиция"
-            ),
+            field=models.PositiveSmallIntegerField(blank=True, db_index=True, default=0, verbose_name="Позиция"),
         ),
         migrations.AlterField(
             model_name="image",
@@ -26,8 +24,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="image",
             name="place",
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE, to="places.place"
-            ),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="places.place"),
         ),
     ]

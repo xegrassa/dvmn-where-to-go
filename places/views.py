@@ -1,16 +1,16 @@
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import render, get_list_or_404
 from django.urls import reverse
 
-from places.models import Place
+from places.models import Place, Image
 
 
 def read_place(request, place_id: int):
-    place = get_object_or_404(Place, id=place_id)
-
+    images = get_list_or_404(Image.objects.select_related("place").filter(place_id=place_id))
+    place = images[0].place
     payload = {
         "title": place.title,
-        "imgs": [img.image.url for img in place.images.all()],
+        "imgs": [img.image.url for img in images],
         "description_short": place.short_description,
         "description_long": place.long_description,
         "coordinates": {"lat": place.latitude, "lng": place.longitude},
