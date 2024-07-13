@@ -19,10 +19,8 @@ def read_place(request, place_id: int):
 
 
 def show_main(request):
-    points = {"type": "FeatureCollection", "features": []}
-
-    for place in Place.objects.all():
-        point = {
+    features = [
+        {
             "type": "Feature",
             "geometry": {"type": "Point", "coordinates": [place.longitude, place.latitude]},
             "properties": {
@@ -31,6 +29,8 @@ def show_main(request):
                 "detailsUrl": reverse("place_detail", args=[place.id]),
             },
         }
-        points["features"].append(point)
+        for place in Place.objects.all()
+    ]
+    points = {"type": "FeatureCollection", "features": features}
 
     return render(request, "index.html", context={"points": points})
