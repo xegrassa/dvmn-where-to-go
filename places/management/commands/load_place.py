@@ -8,8 +8,8 @@ import requests
 from django.core.files.base import ContentFile
 from django.core.files.images import ImageFile
 from django.core.management.base import BaseCommand
-from pydantic import BaseModel
-from requests import Response
+from pydantic import BaseModel, Field, ValidationError
+from requests import Response, HTTPError
 from tqdm import tqdm
 from tqdm.contrib.concurrent import thread_map
 
@@ -23,8 +23,8 @@ class Coordinate(BaseModel):
 
 class PlaceSchema(BaseModel):
     title: str
-    short_description: str
-    long_description: str
+    short_description: str = Field(..., alias="description_short")
+    long_description: str = Field(..., alias="description_long")
     imgs: list[str]
     coordinates: Coordinate
 
@@ -32,28 +32,66 @@ class PlaceSchema(BaseModel):
 logger = logging.getLogger(__name__)
 
 
-def download_json(url: str) -> Response | None:
+def collect_urls(options: dict) -> list[str]:
+    """Сбор URL для скачивания.
+
+    Собирает из файла переданный через флаг --file-path
+    И переданные напрямую как позиционные аргументы
+    """
+    urls = []
+    if options["file_path"]:
+        with open(options["file_path"]) as f:
+            for line in f:
+                urls.append(line.strip())
+    if options["urls"]:
+        for url in options["urls"]:
+            urls.append(url)
+
+    if not urls:
+        raise ValueError(
+            "Нет URL для скачивания. Проверте что передали их как позиционный аргумент или как путь до файла"
+        )
+
+    debug_message = "\n".join(urls)
+    logger.debug(f"Кол-во ссылок на json: {len(urls)}\n {debug_message}")
+
+    return urls
+
+
+def _download(url: str) -> Response | None:
     try:
         response = requests.get(url)
         response.raise_for_status()
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
         logger.debug(f"Не удалось скачать {url}: {e}")
         return None
 
     return response
 
 
-def download_image(url, idx: int = 0) -> tuple[int, str, bytes] | None:
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        logger.debug(f"Не удалось скачать {url}: {e}")
-        return None
+def download_jsons(urls: list[str], thread_count: int) -> list[PlaceSchema]:
+    places_dto = []
+    responses = thread_map(_download, urls, max_workers=thread_count, desc="Downloading json")
+    responses = list(filter(lambda resp: resp is not None, responses))
+    for r in responses:
+        try:
+            places_dto.append(PlaceSchema(**r.json()))
+        except ValidationError as e:
+            logger.debug(f"Невалидный json {r.url}: {e}")
 
-    parsed_url = urlparse(url)
-    file_name = os.path.basename(parsed_url.path)
-    return idx, file_name, response.content
+    logger.debug(f"Успешно скачанных json: {len(places_dto)}")
+
+    return places_dto
+
+
+def download_images(urls: list[str], thread_count: int) -> dict[str, bytes]:
+    responses = thread_map(_download, urls, max_workers=thread_count, desc="Downloading images")
+    responses = list(filter(lambda resp: resp is not None, responses))
+    images = {r.url: r.content for r in responses}
+
+    logger.debug(f"Успешно скачанных изображений: {len(images)}")
+
+    return images
 
 
 def configure_logger(log):
@@ -75,52 +113,29 @@ class Command(BaseCommand):
         if options["verbose"]:
             configure_logger(logger)
 
-        urls = []
-        if options["file_path"]:
-            with open(options["file_path"]) as f:
-                for line in f:
-                    urls.append(line.strip())
-        if options["urls"]:
-            for url in options["urls"]:
-                urls.append(url)
+        json_urls = collect_urls(options)
+        places_dto = download_jsons(json_urls, options["thread_count"])
 
-        debug_message = "\n".join(urls)
-        logger.debug(f"Кол-во ссылок на json: {len(urls)}\n {debug_message}")
+        image_urls = [img for place in places_dto for img in place.imgs]
+        image_results = download_images(image_urls, options["thread_count"])
 
-        responses = thread_map(download_json, urls, max_workers=options["thread_count"], desc="Downloading json files")
-        places_dto = [PlaceSchema(**r.json()) for r in responses if r]
-        logger.debug(f"Успешно скачанных json: {len(places_dto)}")
-
-        image_results = []
-        with ThreadPoolExecutor(options["thread_count"]) as executor:
-            futures = []
-            for idx, place in enumerate(places_dto):
-                futures.extend([executor.submit(download_image, url, idx) for url in place.imgs])
-
-            for future in tqdm(futures, desc="Downloading images", unit="file"):
-                image_results.append(future.result())
-
-        d = defaultdict(list)
-        for img in image_results:
-            idx, file_name, content = img
-            d[idx].append((file_name, content))
-
-        for idx, p in enumerate(places_dto):
-            p_obj = Place.objects.create(
-                title=p.title,
-                description_short=p.short_description,
-                description_long=p.long_description,
-                longitude=p.coordinates.lng,
-                latitude=p.coordinates.lat,
+        for place_dto in places_dto:
+            place = Place.objects.create(
+                title=place_dto.title,
+                short_description=place_dto.short_description,
+                long_description=place_dto.long_description,
+                longitude=place_dto.coordinates.lng,
+                latitude=place_dto.coordinates.lat,
             )
 
-            for images in d[idx]:
-                file_name, content = images
+            for img_url in place_dto.imgs:
+                file_content = image_results[img_url]
+                file_name = os.path.basename(urlparse(img_url).path)
 
-                p_obj.images.create(image=ImageFile(ContentFile(content, name=file_name)))
+                place.images.create(image=ImageFile(ContentFile(file_content, name=file_name)))
 
     def add_arguments(self, parser):
-        parser.add_argument("--urls", nargs="+", help="URLS до json файлов")
+        parser.add_argument("--urls", nargs="+", help="URLS для скачивания json файлов")
         parser.add_argument("--thread-count", type=int, default=6, help="Кол-во потоков для скачивания")
         parser.add_argument("--file-path", help="Файл со списком url")
         parser.add_argument("--verbose", action="store_true", help="Вывод логов")
