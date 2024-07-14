@@ -32,6 +32,11 @@ class PlaceSchema(BaseModel):
 logger = logging.getLogger(__name__)
 
 
+def get_filename_from_url(url: str) -> str:
+    parsed_url = urlparse(url)
+    return os.path.basename(parsed_url.path)
+
+
 def collect_urls(options: dict) -> list[str]:
     """Сбор URL для скачивания.
 
@@ -120,7 +125,7 @@ class Command(BaseCommand):
         image_results = download_images(image_urls, options["thread_count"])
 
         for place_dto in places_dto:
-            place = Place.objects.create(
+            place, is_created = Place.objects.get_or_create(
                 title=place_dto.title,
                 short_description=place_dto.short_description,
                 long_description=place_dto.long_description,
@@ -128,9 +133,13 @@ class Command(BaseCommand):
                 latitude=place_dto.coordinates.lat,
             )
 
+            if not is_created:
+                logger.debug(f"Место '{place}' уже есть в БД и добавлено не будет")
+                continue
+
             for img_url in place_dto.imgs:
                 file_content = image_results[img_url]
-                file_name = os.path.basename(urlparse(img_url).path)
+                file_name = get_filename_from_url(img_url)
 
                 place.images.create(image=ImageFile(ContentFile(file_content, name=file_name)))
 
