@@ -1,7 +1,5 @@
 import logging
 import os
-from collections import defaultdict
-from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlparse
 
 import requests
@@ -9,8 +7,7 @@ from django.core.files.base import ContentFile
 from django.core.files.images import ImageFile
 from django.core.management.base import BaseCommand
 from pydantic import BaseModel, Field, ValidationError
-from requests import Response, HTTPError
-from tqdm import tqdm
+from requests import Response
 from tqdm.contrib.concurrent import thread_map
 
 from places.models import Place
@@ -127,10 +124,12 @@ class Command(BaseCommand):
         for place_dto in places_dto:
             place, is_created = Place.objects.get_or_create(
                 title=place_dto.title,
-                short_description=place_dto.short_description,
-                long_description=place_dto.long_description,
-                longitude=place_dto.coordinates.lng,
-                latitude=place_dto.coordinates.lat,
+                defaults={
+                    "short_description": place_dto.short_description,
+                    "long_description": place_dto.long_description,
+                    "longitude": place_dto.coordinates.lng,
+                    "latitude": place_dto.coordinates.lat,
+                },
             )
 
             if not is_created:
